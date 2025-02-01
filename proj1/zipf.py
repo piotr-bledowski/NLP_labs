@@ -5,7 +5,7 @@ df = pd.read_csv('proj1/words.txt', sep='\t', header=None,
 
 df['Index'] = df['Index'] - 100
 
-df['Zipf_score'] = df['Frequency'] / df['Index']
+df['Zipf_score'] = df['Frequency'] * df['Index']
 
 print(df.head(10))
 
