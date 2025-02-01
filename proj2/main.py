@@ -192,7 +192,37 @@ class SentenceGenerator:
         ttk.Label(subject_frame, text="Subject type:").pack()
         self.subject_type = ttk.Combobox(subject_frame, 
             values=["Personal Pronoun", "Noun Phrase"])
-        self.subject_type.pack()
+        self.subject_type.set("Personal Pronoun")
+        self.subject_type.pack(pady=2)
+        self.subject_type.bind('<<ComboboxSelected>>', self.update_subject_options)
+        
+        # Subject options frame (will be populated based on type)
+        self.subject_options_frame = ttk.Frame(subject_frame)
+        self.subject_options_frame.pack(fill="x", pady=2)
+        
+        # Personal pronoun selection (initially visible)
+        self.pronoun_var = ttk.Combobox(self.subject_options_frame,
+            values=self.grammar.personal_pronouns)
+        self.pronoun_var.pack(pady=2)
+        
+        # Noun phrase options (initially hidden)
+        self.noun_options_frame = ttk.Frame(self.subject_options_frame)
+        ttk.Label(self.noun_options_frame, text="Article:").pack()
+        self.article_var = ttk.Combobox(self.noun_options_frame,
+            values=["None", "la"] + self.grammar.demonstrative_pronouns)
+        self.article_var.set("None")
+        self.article_var.pack(pady=2)
+        
+        ttk.Label(self.noun_options_frame, text="Adjective (optional):").pack()
+        self.subject_adj_var = ttk.Combobox(self.noun_options_frame,
+            values=["None"] + [adj.esperanto for adj in self.grammar.adjectives])
+        self.subject_adj_var.set("None")
+        self.subject_adj_var.pack(pady=2)
+        
+        ttk.Label(self.noun_options_frame, text="Noun:").pack()
+        self.subject_noun_var = ttk.Combobox(self.noun_options_frame,
+            values=[noun.esperanto for noun in self.grammar.nouns])
+        self.subject_noun_var.pack(pady=2)
         
         # Verb frame
         verb_frame = ttk.LabelFrame(self.root, text="Verb")
@@ -202,11 +232,53 @@ class SentenceGenerator:
         ttk.Label(verb_frame, text="Tense:").pack()
         self.tense = ttk.Combobox(verb_frame, 
             values=["Present", "Past", "Future"])
-        self.tense.pack()
+        self.tense.set("Present")
+        self.tense.pack(pady=2)
+        
+        # Verb selection
+        ttk.Label(verb_frame, text="Verb:").pack()
+        self.verb_var = ttk.Combobox(verb_frame,
+            values=[verb.esperanto for verb in self.grammar.verbs])
+        self.verb_var.pack(pady=2)
         
         # Object frame
         object_frame = ttk.LabelFrame(self.root, text="Object")
         object_frame.pack(padx=5, pady=5, fill="x")
+        
+        # Object type selection
+        ttk.Label(object_frame, text="Object type:").pack()
+        self.object_type = ttk.Combobox(object_frame,
+            values=["None", "Personal Pronoun", "Noun Phrase"])
+        self.object_type.set("None")
+        self.object_type.pack(pady=2)
+        self.object_type.bind('<<ComboboxSelected>>', self.update_object_options)
+        
+        # Object options frame
+        self.object_options_frame = ttk.Frame(object_frame)
+        self.object_options_frame.pack(fill="x", pady=2)
+        
+        # Object pronoun selection (initially hidden)
+        self.object_pronoun_var = ttk.Combobox(self.object_options_frame,
+            values=self.grammar.personal_pronouns)
+        
+        # Object noun phrase options (initially hidden)
+        self.object_noun_frame = ttk.Frame(self.object_options_frame)
+        ttk.Label(self.object_noun_frame, text="Article:").pack()
+        self.object_article_var = ttk.Combobox(self.object_noun_frame,
+            values=["None", "la"] + self.grammar.demonstrative_pronouns)
+        self.object_article_var.set("None")
+        self.object_article_var.pack(pady=2)
+        
+        ttk.Label(self.object_noun_frame, text="Adjective (optional):").pack()
+        self.object_adj_var = ttk.Combobox(self.object_noun_frame,
+            values=["None"] + [adj.esperanto for adj in self.grammar.adjectives])
+        self.object_adj_var.set("None")
+        self.object_adj_var.pack(pady=2)
+        
+        ttk.Label(self.object_noun_frame, text="Noun:").pack()
+        self.object_noun_var = ttk.Combobox(self.object_noun_frame,
+            values=[noun.esperanto for noun in self.grammar.nouns])
+        self.object_noun_var.pack(pady=2)
         
         # Generate button
         ttk.Button(self.root, text="Generate Sentence", 
@@ -215,10 +287,74 @@ class SentenceGenerator:
         # Result display
         self.result_var = tk.StringVar()
         ttk.Label(self.root, textvariable=self.result_var).pack(pady=10)
+        
+        # Initial update of subject/object options
+        self.update_subject_options(None)
+        self.update_object_options(None)
+
+    def update_subject_options(self, event):
+        # Clear current options
+        for widget in self.subject_options_frame.winfo_children():
+            widget.pack_forget()
+            
+        if self.subject_type.get() == "Personal Pronoun":
+            self.pronoun_var.pack(pady=2)
+        else:
+            self.noun_options_frame.pack(fill="x", pady=2)
+
+    def update_object_options(self, event):
+        # Clear current options
+        for widget in self.object_options_frame.winfo_children():
+            widget.pack_forget()
+            
+        if self.object_type.get() == "Personal Pronoun":
+            self.object_pronoun_var.pack(pady=2)
+        elif self.object_type.get() == "Noun Phrase":
+            self.object_noun_frame.pack(fill="x", pady=2)
 
     def generate_sentence(self):
-        # Implement sentence generation logic here
-        pass
+        try:
+            # Build subject
+            if self.subject_type.get() == "Personal Pronoun":
+                subject = self.pronoun_var.get()
+            else:
+                subject_parts = []
+                if self.article_var.get() != "None":
+                    subject_parts.append(self.article_var.get())
+                if self.subject_adj_var.get() != "None":
+                    subject_parts.append(self.subject_adj_var.get())
+                subject_parts.append(self.subject_noun_var.get())
+                subject = " ".join(subject_parts)
+
+            # Build verb (add tense markers)
+            verb = self.verb_var.get()
+            if self.tense.get() == "Past":
+                verb = "is " + verb
+            elif self.tense.get() == "Future":
+                verb = "os " + verb
+
+            # Build object
+            if self.object_type.get() == "None":
+                object_phrase = ""
+            elif self.object_type.get() == "Personal Pronoun":
+                object_phrase = self.object_pronoun_var.get()
+            else:
+                object_parts = []
+                if self.object_article_var.get() != "None":
+                    object_parts.append(self.object_article_var.get())
+                if self.object_adj_var.get() != "None":
+                    object_parts.append(self.object_adj_var.get())
+                object_parts.append(self.object_noun_var.get())
+                object_phrase = " ".join(object_parts)
+
+            # Combine all parts
+            sentence_parts = [subject, verb]
+            if object_phrase:
+                sentence_parts.append(object_phrase)
+            
+            self.result_var.set(" ".join(sentence_parts))
+        except:
+            self.result_var.set("Please fill in all required fields")
 
     def run(self):
         self.root.mainloop()
