@@ -10,5 +10,8 @@ df['Index'] = df['Index'] - 100
 # Calculate Zipf score (frequency / index)
 df['Zipf_score'] = df['Frequency'] / df['Index']
 
-# Display the results
-print(df)
+# Display first 10 results
+print(df.head(10))
+
+# Save to CSV file with headers
+df.to_csv('proj1/zipf_results.csv', index=False)
