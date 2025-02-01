@@ -13,16 +13,15 @@ class TextAnalyzer:
         """Initialize with sample Esperanto verb-noun pairs."""
         self.verbs_nouns.update(DATA)
 
-    def execute_operations(self, expression: str) -> Set[str]:
-        """Executes set operations based on given expression."""
-        if '&' in expression:
-            sets = [self._get_set(verb.strip()) for verb in expression.split('&')]
-            return set.intersection(*sets)
-        elif '|' in expression:
-            sets = [self._get_set(verb.strip()) for verb in expression.split('|')]
-            return set.union(*sets)
-        else:
-            return self._get_set(expression.strip())
+    def execute_operations(self, verb1: str, operation: str, verb2: str = None) -> Set[str]:
+        """Executes set operations based on given verbs and operation."""
+        if operation == "show":
+            return self._get_set(verb1)
+        elif operation == "intersection" and verb2:
+            return self._get_set(verb1) & self._get_set(verb2)
+        elif operation == "union" and verb2:
+            return self._get_set(verb1) | self._get_set(verb2)
+        return set()
 
     def _get_set(self, verb: str) -> Set[str]:
         """Returns set of nouns for given verb."""
@@ -42,22 +41,37 @@ class AnalyzerGUI:
         main_frame = ttk.Frame(root, padding="10")
         main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         
-        # Available verbs list
-        ttk.Label(main_frame, text="Available verbs:").grid(row=0, column=0, sticky=tk.W)
-        verbs_text = ", ".join(sorted(self.analyzer.get_all_verbs()))
-        verb_display = scrolledtext.ScrolledText(main_frame, width=40, height=3, wrap=tk.WORD)
-        verb_display.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E))
-        verb_display.insert(tk.END, verbs_text)
-        verb_display.config(state='disabled')
+        # First verb selection
+        ttk.Label(main_frame, text="First verb:").grid(row=0, column=0, sticky=tk.W)
+        self.verb1_var = tk.StringVar()
+        verbs = sorted(self.analyzer.get_all_verbs())
+        self.verb1_combo = ttk.Combobox(main_frame, textvariable=self.verb1_var, values=verbs, width=20)
+        self.verb1_combo.grid(row=0, column=1, sticky=(tk.W, tk.E))
+        if verbs:
+            self.verb1_combo.set(verbs[0])
         
-        # Expression entry
-        ttk.Label(main_frame, text="Enter expression:").grid(row=2, column=0, sticky=tk.W)
-        self.expression_var = tk.StringVar()
-        self.expression_entry = ttk.Entry(main_frame, textvariable=self.expression_var, width=40)
-        self.expression_entry.grid(row=3, column=0, sticky=(tk.W, tk.E))
+        # Operation selection
+        ttk.Label(main_frame, text="Operation:").grid(row=1, column=0, sticky=tk.W)
+        self.operation_var = tk.StringVar()
+        operations = ["show", "intersection", "union"]
+        self.operation_combo = ttk.Combobox(main_frame, textvariable=self.operation_var, 
+                                          values=operations, width=20)
+        self.operation_combo.grid(row=1, column=1, sticky=(tk.W, tk.E))
+        self.operation_combo.set(operations[0])
+        self.operation_combo.bind('<<ComboboxSelected>>', self._on_operation_change)
+        
+        # Second verb selection
+        ttk.Label(main_frame, text="Second verb:").grid(row=2, column=0, sticky=tk.W)
+        self.verb2_var = tk.StringVar()
+        self.verb2_combo = ttk.Combobox(main_frame, textvariable=self.verb2_var, 
+                                       values=verbs, width=20, state='disabled')
+        self.verb2_combo.grid(row=2, column=1, sticky=(tk.W, tk.E))
+        if verbs:
+            self.verb2_combo.set(verbs[0])
         
         # Execute button
-        ttk.Button(main_frame, text="Execute", command=self.execute).grid(row=3, column=1, padx=5)
+        ttk.Button(main_frame, text="Execute", command=self.execute).grid(row=3, column=0, 
+                                                                        columnspan=2, pady=10)
         
         # Results area
         ttk.Label(main_frame, text="Results:").grid(row=4, column=0, sticky=tk.W)
@@ -65,20 +79,36 @@ class AnalyzerGUI:
         self.result_text.grid(row=5, column=0, columnspan=2, sticky=(tk.W, tk.E))
         
         # Help text
-        help_text = "Use expressions like: 'manĝi'&'trinki' or 'aĉeti'|'vendi'\n& for intersection, | for union"
+        help_text = ("Select a verb to see its nouns.\n"
+                    "Use intersection (∩) to find common nouns between two verbs.\n"
+                    "Use union (∪) to combine nouns from two verbs.")
         ttk.Label(main_frame, text=help_text).grid(row=6, column=0, columnspan=2, sticky=tk.W)
         
         # Configure grid
         for child in main_frame.winfo_children(): 
             child.grid_configure(padx=5, pady=5)
     
+    def _on_operation_change(self, event=None):
+        """Enable/disable second verb based on operation selection."""
+        if self.operation_var.get() == "show":
+            self.verb2_combo.config(state='disabled')
+        else:
+            self.verb2_combo.config(state='normal')
+    
     def execute(self):
-        """Execute the expression and display results."""
-        expression = self.expression_var.get()
+        """Execute the operation and display results."""
         try:
-            result = self.analyzer.execute_operations(expression)
+            verb1 = self.verb1_var.get()
+            operation = self.operation_var.get()
+            verb2 = self.verb2_var.get() if operation != "show" else None
+            
+            result = self.analyzer.execute_operations(verb1, operation, verb2)
+            
             self.result_text.delete(1.0, tk.END)
-            self.result_text.insert(tk.END, ", ".join(sorted(result)))
+            if result:
+                self.result_text.insert(tk.END, ", ".join(sorted(result)))
+            else:
+                self.result_text.insert(tk.END, "No results found")
         except Exception as e:
             self.result_text.delete(1.0, tk.END)
             self.result_text.insert(tk.END, f"Error: {str(e)}")

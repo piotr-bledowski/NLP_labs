@@ -88,4 +88,4 @@ DATA = {
     'admiri': {'arto', 'naturo', 'homo', 'ideoj'},
     'lerni': {'lingvo', 'kapablo', 'temo', 'fako'},
     'ekspliki': {'ideo', 'fako', 'solvo', 'problemo'}
-} 
+}
