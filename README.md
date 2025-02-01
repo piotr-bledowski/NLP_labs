@@ -98,8 +98,3 @@ python proj2/main.py
 # Project 3
 python proj3/main.py
 ```
-
-```
-
-This README provides a comprehensive overview of all three projects, their features, and how to use them. It includes installation instructions and references to the key implementation files.
-```
