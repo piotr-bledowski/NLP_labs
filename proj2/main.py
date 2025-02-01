@@ -184,109 +184,202 @@ class SentenceGenerator:
         self.root = tk.Tk()
         self.root.title("Esperanto Sentence Generator")
         
-        # Subject frame
-        subject_frame = ttk.LabelFrame(self.root, text="Subject")
-        subject_frame.pack(padx=5, pady=5, fill="x")
+        # Set theme and configure styles
+        style = ttk.Style()
+        style.theme_use('clam')  # Use 'clam' theme for a modern look
         
-        # Subject type selection
-        ttk.Label(subject_frame, text="Subject type:").pack()
-        self.subject_type = ttk.Combobox(subject_frame, 
-            values=["Personal Pronoun", "Noun Phrase"])
+        # Configure custom styles
+        style.configure('TLabelframe', padding=10)
+        style.configure('TLabelframe.Label', font=('Helvetica', 10, 'bold'))
+        style.configure('TLabel', padding=5)
+        style.configure('TButton', padding=10)
+        style.configure('Header.TLabel', font=('Helvetica', 12, 'bold'))
+        
+        # Main container with padding
+        main_container = ttk.Frame(self.root, padding="20")
+        main_container.pack(fill="both", expand=True)
+        
+        # Title
+        title_label = ttk.Label(main_container, 
+                              text="Esperanto Sentence Generator",
+                              style='Header.TLabel')
+        title_label.pack(pady=(0, 20))
+        
+        # Subject frame
+        subject_frame = ttk.LabelFrame(main_container, text="Subject")
+        subject_frame.pack(padx=10, pady=5, fill="x")
+        
+        # Add padding inside frames
+        subject_inner = ttk.Frame(subject_frame, padding=10)
+        subject_inner.pack(fill="x")
+        
+        # Create two-column layout for labels and controls
+        label_width = 15  # Consistent width for all labels
+        
+        # Subject type selection with better layout
+        subject_type_frame = ttk.Frame(subject_inner)
+        subject_type_frame.pack(fill="x", pady=2)
+        ttk.Label(subject_type_frame, text="Subject type:", width=label_width).pack(side="left")
+        self.subject_type = ttk.Combobox(subject_type_frame, 
+            values=["Personal Pronoun", "Noun Phrase"],
+            width=30)
         self.subject_type.set("Personal Pronoun")
-        self.subject_type.pack(pady=2)
+        self.subject_type.pack(side="left", padx=(5, 0))
         self.subject_type.bind('<<ComboboxSelected>>', self.update_subject_options)
         
-        # Subject options frame (will be populated based on type)
-        self.subject_options_frame = ttk.Frame(subject_frame)
-        self.subject_options_frame.pack(fill="x", pady=2)
+        # Subject options frame with better spacing
+        self.subject_options_frame = ttk.Frame(subject_inner)
+        self.subject_options_frame.pack(fill="x", pady=5)
         
-        # Personal pronoun selection (initially visible)
-        self.pronoun_var = ttk.Combobox(self.subject_options_frame,
-            values=self.grammar.personal_pronouns)
-        self.pronoun_var.pack(pady=2)
+        # Personal pronoun selection
+        self.pronoun_frame = ttk.Frame(self.subject_options_frame)
+        ttk.Label(self.pronoun_frame, text="Pronoun:", width=label_width).pack(side="left")
+        self.pronoun_var = ttk.Combobox(self.pronoun_frame,
+            values=self.grammar.personal_pronouns,
+            width=30)
+        self.pronoun_var.pack(side="left", padx=(5, 0))
         
-        # Noun phrase options (initially hidden)
+        # Noun phrase options
         self.noun_options_frame = ttk.Frame(self.subject_options_frame)
-        ttk.Label(self.noun_options_frame, text="Article:").pack()
-        self.article_var = ttk.Combobox(self.noun_options_frame,
-            values=["None", "la"] + self.grammar.demonstrative_pronouns)
+        
+        # Article frame
+        article_frame = ttk.Frame(self.noun_options_frame)
+        article_frame.pack(fill="x", pady=2)
+        ttk.Label(article_frame, text="Article:", width=label_width).pack(side="left")
+        self.article_var = ttk.Combobox(article_frame,
+            values=["None", "la"] + self.grammar.demonstrative_pronouns,
+            width=30)
         self.article_var.set("None")
-        self.article_var.pack(pady=2)
+        self.article_var.pack(side="left", padx=(5, 0))
         
-        ttk.Label(self.noun_options_frame, text="Adjective (optional):").pack()
-        self.subject_adj_var = ttk.Combobox(self.noun_options_frame,
-            values=["None"] + [adj.esperanto for adj in self.grammar.adjectives])
+        # Adjective frame
+        adj_frame = ttk.Frame(self.noun_options_frame)
+        adj_frame.pack(fill="x", pady=2)
+        ttk.Label(adj_frame, text="Adjective:", width=label_width).pack(side="left")
+        self.subject_adj_var = ttk.Combobox(adj_frame,
+            values=["None"] + [adj.esperanto for adj in self.grammar.adjectives],
+            width=30)
         self.subject_adj_var.set("None")
-        self.subject_adj_var.pack(pady=2)
+        self.subject_adj_var.pack(side="left", padx=(5, 0))
         
-        ttk.Label(self.noun_options_frame, text="Noun:").pack()
-        self.subject_noun_var = ttk.Combobox(self.noun_options_frame,
-            values=[noun.esperanto for noun in self.grammar.nouns])
-        self.subject_noun_var.pack(pady=2)
+        # Noun frame
+        noun_frame = ttk.Frame(self.noun_options_frame)
+        noun_frame.pack(fill="x", pady=2)
+        ttk.Label(noun_frame, text="Noun:", width=label_width).pack(side="left")
+        self.subject_noun_var = ttk.Combobox(noun_frame,
+            values=[noun.esperanto for noun in self.grammar.nouns],
+            width=30)
+        self.subject_noun_var.pack(side="left", padx=(5, 0))
         
         # Verb frame
-        verb_frame = ttk.LabelFrame(self.root, text="Verb")
-        verb_frame.pack(padx=5, pady=5, fill="x")
+        verb_frame = ttk.LabelFrame(main_container, text="Verb")
+        verb_frame.pack(padx=10, pady=10, fill="x")
         
-        # Tense selection
-        ttk.Label(verb_frame, text="Tense:").pack()
-        self.tense = ttk.Combobox(verb_frame, 
-            values=["Present", "Past", "Future"])
+        # Add padding inside verb frame
+        verb_inner = ttk.Frame(verb_frame, padding=10)
+        verb_inner.pack(fill="x")
+        
+        # Tense frame
+        tense_frame = ttk.Frame(verb_inner)
+        tense_frame.pack(fill="x", pady=2)
+        ttk.Label(tense_frame, text="Tense:", width=label_width).pack(side="left")
+        self.tense = ttk.Combobox(tense_frame, 
+            values=["Present", "Past", "Future"],
+            width=30)
         self.tense.set("Present")
-        self.tense.pack(pady=2)
+        self.tense.pack(side="left", padx=(5, 0))
         
-        # Verb selection
-        ttk.Label(verb_frame, text="Verb:").pack()
-        self.verb_var = ttk.Combobox(verb_frame,
-            values=[verb.esperanto for verb in self.grammar.verbs])
-        self.verb_var.pack(pady=2)
+        # Verb selection frame
+        verb_select_frame = ttk.Frame(verb_inner)
+        verb_select_frame.pack(fill="x", pady=2)
+        ttk.Label(verb_select_frame, text="Verb:", width=label_width).pack(side="left")
+        self.verb_var = ttk.Combobox(verb_select_frame,
+            values=[verb.esperanto for verb in self.grammar.verbs],
+            width=30)
+        self.verb_var.pack(side="left", padx=(5, 0))
         
         # Object frame
-        object_frame = ttk.LabelFrame(self.root, text="Object")
-        object_frame.pack(padx=5, pady=5, fill="x")
+        object_frame = ttk.LabelFrame(main_container, text="Object")
+        object_frame.pack(padx=10, pady=5, fill="x")
         
-        # Object type selection
-        ttk.Label(object_frame, text="Object type:").pack()
-        self.object_type = ttk.Combobox(object_frame,
-            values=["None", "Personal Pronoun", "Noun Phrase"])
+        # Add padding inside object frame
+        object_inner = ttk.Frame(object_frame, padding=10)
+        object_inner.pack(fill="x")
+        
+        # Object type frame
+        object_type_frame = ttk.Frame(object_inner)
+        object_type_frame.pack(fill="x", pady=2)
+        ttk.Label(object_type_frame, text="Object type:", width=label_width).pack(side="left")
+        self.object_type = ttk.Combobox(object_type_frame,
+            values=["None", "Personal Pronoun", "Noun Phrase"],
+            width=30)
         self.object_type.set("None")
-        self.object_type.pack(pady=2)
+        self.object_type.pack(side="left", padx=(5, 0))
         self.object_type.bind('<<ComboboxSelected>>', self.update_object_options)
         
-        # Object options frame
-        self.object_options_frame = ttk.Frame(object_frame)
-        self.object_options_frame.pack(fill="x", pady=2)
+        self.object_options_frame = ttk.Frame(object_inner)
+        self.object_options_frame.pack(fill="x", pady=5)
         
-        # Object pronoun selection (initially hidden)
-        self.object_pronoun_var = ttk.Combobox(self.object_options_frame,
-            values=self.grammar.personal_pronouns)
+        # Object pronoun frame
+        self.object_pronoun_frame = ttk.Frame(self.object_options_frame)
+        ttk.Label(self.object_pronoun_frame, text="Pronoun:", width=label_width).pack(side="left")
+        self.object_pronoun_var = ttk.Combobox(self.object_pronoun_frame,
+            values=self.grammar.personal_pronouns,
+            width=30)
+        self.object_pronoun_var.pack(side="left", padx=(5, 0))
         
-        # Object noun phrase options (initially hidden)
+        # Object noun phrase options
         self.object_noun_frame = ttk.Frame(self.object_options_frame)
-        ttk.Label(self.object_noun_frame, text="Article:").pack()
-        self.object_article_var = ttk.Combobox(self.object_noun_frame,
-            values=["None", "la"] + self.grammar.demonstrative_pronouns)
+        
+        # Object article frame
+        obj_article_frame = ttk.Frame(self.object_noun_frame)
+        obj_article_frame.pack(fill="x", pady=2)
+        ttk.Label(obj_article_frame, text="Article:", width=label_width).pack(side="left")
+        self.object_article_var = ttk.Combobox(obj_article_frame,
+            values=["None", "la"] + self.grammar.demonstrative_pronouns,
+            width=30)
         self.object_article_var.set("None")
-        self.object_article_var.pack(pady=2)
+        self.object_article_var.pack(side="left", padx=(5, 0))
         
-        ttk.Label(self.object_noun_frame, text="Adjective (optional):").pack()
-        self.object_adj_var = ttk.Combobox(self.object_noun_frame,
-            values=["None"] + [adj.esperanto for adj in self.grammar.adjectives])
+        # Object adjective frame
+        obj_adj_frame = ttk.Frame(self.object_noun_frame)
+        obj_adj_frame.pack(fill="x", pady=2)
+        ttk.Label(obj_adj_frame, text="Adjective:", width=label_width).pack(side="left")
+        self.object_adj_var = ttk.Combobox(obj_adj_frame,
+            values=["None"] + [adj.esperanto for adj in self.grammar.adjectives],
+            width=30)
         self.object_adj_var.set("None")
-        self.object_adj_var.pack(pady=2)
+        self.object_adj_var.pack(side="left", padx=(5, 0))
         
-        ttk.Label(self.object_noun_frame, text="Noun:").pack()
-        self.object_noun_var = ttk.Combobox(self.object_noun_frame,
-            values=[noun.esperanto for noun in self.grammar.nouns])
-        self.object_noun_var.pack(pady=2)
+        # Object noun frame
+        obj_noun_frame = ttk.Frame(self.object_noun_frame)
+        obj_noun_frame.pack(fill="x", pady=2)
+        ttk.Label(obj_noun_frame, text="Noun:", width=label_width).pack(side="left")
+        self.object_noun_var = ttk.Combobox(obj_noun_frame,
+            values=[noun.esperanto for noun in self.grammar.nouns],
+            width=30)
+        self.object_noun_var.pack(side="left", padx=(5, 0))
         
-        # Generate button
-        ttk.Button(self.root, text="Generate Sentence", 
-                  command=self.generate_sentence).pack(pady=10)
+        # Generate button with better styling
+        generate_button = ttk.Button(main_container, 
+                                   text="Generate Sentence",
+                                   command=self.generate_sentence,
+                                   style='TButton')
+        generate_button.pack(pady=20)
         
-        # Result display
+        # Result display with better styling
+        result_frame = ttk.LabelFrame(main_container, text="Generated Sentence")
+        result_frame.pack(padx=10, pady=(0, 10), fill="x")
+        
         self.result_var = tk.StringVar()
-        ttk.Label(self.root, textvariable=self.result_var).pack(pady=10)
+        result_label = ttk.Label(result_frame, 
+                               textvariable=self.result_var,
+                               padding=15,
+                               font=('Helvetica', 11))
+        result_label.pack(fill="x")
+        
+        # Set minimum window size
+        self.root.minsize(500, 700)
         
         # Initial update of subject/object options
         self.update_subject_options(None)
